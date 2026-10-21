@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="月序 Calendar — 清晰、安靜的繁體中文日曆。" />
+    <title>月序 Calendar</title>
+    <link rel="stylesheet" href="styles.css?v=20261021-export" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="main-content">
+        <header class="topbar">
+          <div class="topbar-brand"></div>
+          <div class="month-heading">
+            <div class="month-title-row">
+              <button class="icon-button month-nav" id="prevMonth" aria-label="上一個月">←</button>
+              <h2 id="monthLabel">2026年10月</h2>
+              <button class="icon-button month-nav" id="nextMonth" aria-label="下一個月">→</button>
+            </div>
+          </div>
+          <div class="top-actions">
+            <button class="outline-button" id="exportImageButton" type="button" title="將本月月曆匯出為 PNG">匯出圖片</button>
+            <button class="outline-button" id="markHolidayButton" type="button">標記為假期</button>
+            <button class="outline-button" id="todayButton" type="button">今天</button>
+            <button class="outline-button all-events-top-button" id="allEventsTopButton" type="button" aria-pressed="false">所有事件</button>
+            <button class="outline-button backup-action-button" id="importExportButton" type="button">滙入/匯出</button>
+            <button class="primary-button" id="newEventButton" type="button"><span>＋</span> 新增事件</button>
+            <button class="aside-toggle" id="asideToggle" type="button" aria-expanded="true" aria-label="收合側欄" title="收合側欄" aria-controls="detailContent">
+              <span class="aside-toggle-icon" aria-hidden="true">›</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="calendar-area" id="calendarArea">
+          <section class="calendar-card" aria-label="月曆">
+            <div class="weekday-row" aria-hidden="true"><span class="weekend">星期日</span><span>星期一</span><span>星期二</span><span>星期三</span><span>星期四</span><span>星期五</span><span class="weekend">星期六</span></div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </section>
+        </div>
+        <section class="all-events-view" id="allEventsView" hidden aria-labelledby="allEventsTitle">
+          <div class="all-events-header">
+            <div>
+              <p class="eyebrow">ALL EVENTS</p>
+              <h2 id="allEventsTitle">當月所有事件</h2>
+              <p>只顯示目前瀏覽月份內的事件；點擊事件可查看該日期詳情，並留在此清單。</p>
+            </div>
+            <span class="all-events-count" id="allEventsCount">0 個事件</span>
+          </div>
+          <div class="all-events-list" id="allEventsList"></div>
+          <div class="all-events-empty" id="allEventsEmpty" hidden><div class="empty-icon">✦</div><strong>本月沒有事件</strong><span>切換月份查看其他安排，或新增本月事件。</span></div>
+        </section>
+      </main>
+
+      <aside class="detail-panel" aria-label="日期詳情">
+        <div class="detail-content" id="detailContent">
+          <div class="detail-header">
+            <div class="detail-header-main">
+              <p class="eyebrow">SELECTED DATE</p>
+              <h3 id="selectedDateTitle">10 月 10 日</h3>
+              <div class="detail-header-sub">
+                <p id="selectedDateSub">星期六</p>
+                <div class="timezone-note"><span class="status-dot"></span>GMT+8 時區</div>
+              </div>
+            </div>
+          </div>
+          <div class="detail-rule"></div>
+          <div class="agenda-section">
+          <div class="section-title"><strong>今天事件</strong><span id="eventCount">0 個事件</span></div>
+          <div id="eventList" class="event-list"></div>
+          <div id="emptyState" class="empty-state"><div class="empty-icon">✦</div><strong>這天還沒有安排</strong><span>留一點空白，也可以很剛好。</span></div>
+          </div>
+          <button class="detail-add-button" id="detailAddButton" type="button"><span>＋</span> 為這一天新增事件</button>
+          <div class="detail-footer"><span class="small-calendar-icon">▣</span><span id="dateFooter">已選取日期</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="modal-backdrop" id="eventModal" hidden>
+      <section class="event-modal" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow" id="modalEyebrow">NEW EVENT</p>
+            <h2 id="eventModalTitle">新增事件</h2>
+            <p id="modalDateLabel">10 月 10 日 · 星期六</p>
+          </div>
+          <button class="modal-close" id="closeModal" type="button" aria-label="關閉新增事件視窗">×</button>
+        </div>
+        <form id="eventModalForm">
+          <label class="modal-field modal-field-full" for="modalTitle"><span>事件名稱</span><input id="modalTitle" type="text" placeholder="例如：下午茶、專注時間" maxlength="50" autocomplete="off" required /></label>
+          <label class="modal-field modal-field-full" for="modalDate"><span>開始日期</span><input id="modalDate" type="date" required /></label>
+          <div class="modal-field-grid">
+            <label class="modal-field" for="modalStart"><span>開始時間</span><input id="modalStart" type="time" value="09:00" /></label>
+            <label class="modal-field" for="modalEnd"><span>結束時間</span><input id="modalEnd" type="time" value="10:00" /></label>
+          </div>
+          <div class="modal-field-grid">
+            <label class="modal-field" for="modalRepeat"><span>重複頻率</span><select id="modalRepeat"><option value="none">不重複</option><option value="daily">每天</option><option value="weekly">每週</option><option value="monthly">每月</option><option value="monthEnd">月尾</option></select></label>
+            <label class="modal-field color-field"><span>顏色標籤</span><div class="color-control"><div class="color-swatches" aria-label="快速選擇顏色"><button class="color-swatch selected" type="button" data-color="#2563eb" style="--swatch:#2563eb" aria-label="藍色"></button><button class="color-swatch" type="button" data-color="#f28b5d" style="--swatch:#f28b5d" aria-label="橙色"></button><button class="color-swatch" type="button" data-color="#9b8afb" style="--swatch:#9b8afb" aria-label="紫色"></button><button class="color-swatch" type="button" data-color="#48a47e" style="--swatch:#48a47e" aria-label="綠色"></button></div><input id="modalColor" type="color" value="#2563eb" aria-label="自訂顏色" /></div></label>
+          </div>
+          <label class="modal-field modal-field-full repeat-until-field" id="repeatUntilField" for="modalRepeatUntil" hidden><span>重複結束月份</span><input id="modalRepeatUntil" type="month" /></label>
+          <label class="modal-field modal-field-full" for="modalNote"><span>備註 <em>選填</em></span><textarea id="modalNote" rows="3" maxlength="160" placeholder="補充地點、待辦事項或想記住的細節"></textarea></label>
+          <div class="modal-actions"><button class="modal-cancel" id="cancelModal" type="button">取消</button><button class="modal-save" id="modalSubmitButton" type="submit">儲存事件</button></div>
+        </form>
+      </section>
+    </div>
+    <div class="modal-backdrop" id="deleteConfirmModal" hidden>
+      <section class="event-modal delete-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmDescription">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">DELETE EVENT</p>
+            <h2 id="deleteConfirmTitle">確定刪除事件？</h2>
+            <p id="deleteConfirmDescription">此操作無法復原。</p>
+          </div>
+          <button class="modal-close" id="closeDeleteModal" type="button" aria-label="關閉刪除確認視窗">×</button>
+        </div>
+        <p class="delete-confirm-copy">即將刪除 <strong id="deleteEventName"></strong></p>
+        <fieldset class="delete-scope-options" id="deleteScopeOptions" hidden>
+          <legend>要刪除哪些重複事件？</legend>
+          <label id="deleteOccurrenceOption"><input type="radio" name="repeatDeleteScope" value="occurrence" aria-describedby="deleteOccurrenceHelp" checked /><span><strong id="deleteOccurrenceLabel">只刪除這一天</strong><small id="deleteOccurrenceHelp">其他日期的重複事件會保留。</small></span></label>
+          <label><input type="radio" name="repeatDeleteScope" value="future" aria-describedby="deleteFutureHelp" /><span><strong id="deleteFutureLabel">刪除這一天及之後</strong><small id="deleteFutureHelp">保留這一天之前已排定的事件。</small></span></label>
+        </fieldset>
+        <div class="modal-actions">
+          <button class="modal-cancel" id="cancelDeleteButton" type="button">取消</button>
+          <button class="delete-confirm-button" id="confirmDeleteButton" type="button">刪除事件</button>
+        </div>
+      </section>
+    </div>
+    <input id="importFileInput" type="file" accept="application/json,.json" hidden />
+    <div class="modal-backdrop" id="importConfirmModal" hidden>
+      <section class="event-modal delete-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="importConfirmTitle" aria-describedby="importConfirmDescription">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">IMPORT BACKUP</p>
+            <h2 id="importConfirmTitle">匯入行程備份？</h2>
+            <p id="importConfirmDescription">匯入會取代目前日曆中的全部行程。</p>
+          </div>
+          <button class="modal-close" id="closeImportModal" type="button" aria-label="關閉匯入確認視窗">×</button>
+        </div>
+        <p class="delete-confirm-copy">備份檔案：<strong id="importFileName"></strong><br />包含 <strong id="importEventCount">0 個事件</strong>。請確認目前行程已先匯出備份。</p>
+        <div class="modal-actions">
+          <button class="modal-cancel" id="cancelImportButton" type="button">取消</button>
+          <button class="delete-confirm-button" id="confirmImportButton" type="button">取代並匯入</button>
+        </div>
+      </section>
+    </div>
+    <div class="modal-backdrop" id="importExportModal" hidden>
+      <section class="event-modal import-export-modal" role="dialog" aria-modal="true" aria-labelledby="importExportTitle">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">BACKUP</p>
+            <h2 id="importExportTitle">滙入 / 匯出</h2>
+            <p>選擇要進行的操作</p>
+          </div>
+          <button class="modal-close" id="closeImportExportModal" type="button" aria-label="關閉滙入匯出視窗">×</button>
+        </div>
+        <div class="import-export-actions">
+          <button class="import-export-option" id="modalImportButton" type="button">
+            <span class="import-export-icon">↓</span>
+            <strong>匯入 JSON</strong>
+            <small>從備份檔案還原行程</small>
+          </button>
+          <button class="import-export-option" id="modalExportButton" type="button">
+            <span class="import-export-icon">↑</span>
+            <strong>匯出 JSON</strong>
+            <small>將目前行程備份為檔案</small>
+          </button>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-cancel" id="cancelImportExportButton" type="button">取消</button>
+        </div>
+      </section>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js?v=20261021-export" defer></script>
+  </body>
+</html>
